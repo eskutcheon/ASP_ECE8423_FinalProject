@@ -22,17 +22,21 @@ function [filter_state, y, e] = kalman_rls_filter(action, M, N, lambda, delta, v
                 x = zeros(M, 1);  % filter state x(n)
                 K = eye(M);       % correlation matrix of state prediction error
             else
-                x = varargin(1);
+                x = varargin{1};
                 % correlation matrix of state prediction error, initialized with initial state
                 x_white = x - mean(x);
                 % NOTE: error covariance should be of shape (M, M)
                 K = mean(x_white * x_white');
             end
+            % process noise variance to form Q1
+            v1 = varargin{};
             Q1 = 1e-5 * eye(M);  % covariance matrix of v_1 in the system equation
             Q2 = 1e-2 * eye(N);  % covariance matrix of v_2 in the measurement equation
-            F = eye(M);          % state transition matrix
+            F = (1 - delta) .* eye(M);          % state transition matrix
             % FIXME: needs to be N x M
-            C = eye(M);          % FIXME: measurement equation matrix
+            %C = eye(M);          % FIXME: measurement equation matrix
+            C = sprand(N, M, 0.01)          % FIXME: measurement equation matrix
+            fprintf("testing the randomly-generated C: %d\n", nnz(C));
             filter_state = struct('x', x, 'K', K, 'Q1', Q1, 'Q2', Q2, 'F', F, 'C', C);
 
         case 'adapt'
@@ -47,9 +51,6 @@ function [filter_state, y, e] = kalman_rls_filter(action, M, N, lambda, delta, v
             innovation = d - x' * x_hat;
             % Innovation covariance - should be (N, N)
             R = x' * P_hat * x + filter_state.Q2;
-            fprintf("shape of P_hat in kalman_rls_filter: (%d,%d)\n", size(P_hat))
-            fprintf("shape of x in kalman_rls_filter: (%d,%d)\n", size(x))
-            fprintf("shape of R in kalman_rls_filter: (%d,%d)\n", size(R))
             % Kalman Gain - should be shape (M, N)
             G = (P_hat * x) ./ R;
 
