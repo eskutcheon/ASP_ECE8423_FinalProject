@@ -31,8 +31,7 @@ function [filter_state, y, e] = rls_filter(filter_state, x, d)
     % a posteriori weight error (previous error - k*xi)
     y = filter_state.w' * x;
     e = d - y;
-    
     % NOTE: still not sure if this is necessary, since the actual
     % parameters that need to be updated are done through the struct anyway
-    filter_state = struct('w', filter_state.w, 'P', filter_state.P, 'lambda', filter_state.lambda);
+    %filter_state = struct('w', filter_state.w, 'P', filter_state.P, 'lambda', filter_state.lambda);
 end
